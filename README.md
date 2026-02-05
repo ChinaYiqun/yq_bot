@@ -30,6 +30,8 @@
 
 💎 **Easy-to-Use**: One-click to depoly and you're ready to go.
 
+🌐 **Web Frontend**: Browser-based chat with history persistence (refresh/reconnect maintains context).
+
 ## 🏗️ Architecture
 
 <p align="center">
@@ -246,9 +248,9 @@ nanobot gateway
 <details>
 <summary><b>Web UI</b></summary>
 
-Run a local web chat UI (with session history).
+Run a local web chat UI with session history persistence (refresh/reconnect maintains history).
 
-**1. Configure**
+**1. Configure** (`~/.nanobot/config.json`)
 
 ```json
 {
@@ -267,12 +269,21 @@ Run a local web chat UI (with session history).
 **2. Run**
 
 ```bash
-nanobot gateway -p 18790
+nanobot gateway
+# or
+python3 -m nanobot.cli.commands gateway
 ```
 
 **3. Open**
 
 Visit `http://127.0.0.1:18790` in your browser.
+
+**Features**
+- Real-time chat in browser
+- Automatic history context (persists across refresh/reconnect)
+- Session ID stored in browser
+- Conversation history saved to `~/.nanobot/sessions/`
+- Left-side controls: New Chat / Clear / Reconnect
 
 </details>
 
@@ -400,7 +411,7 @@ nanobot/
 │   ├── subagent.py #    Background task execution
 │   └── tools/      #    Built-in tools (incl. spawn)
 ├── skills/         # 🎯 Bundled skills (github, weather, tmux...)
-├── channels/       # 📱 WhatsApp integration
+├── channels/       # 📱 Communication channels (WhatsApp, Telegram, Web UI)
 ├── bus/            # 🚌 Message routing
 ├── cron/           # ⏰ Scheduled tasks
 ├── heartbeat/      # 💓 Proactive wake-up
