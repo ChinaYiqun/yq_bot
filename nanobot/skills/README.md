@@ -21,4 +21,5 @@ The skill format and metadata structure follow OpenClaw's conventions to maintai
 | `weather` | Get weather info using wttr.in and Open-Meteo |
 | `summarize` | Summarize URLs, files, and YouTube videos |
 | `tmux` | Remote-control tmux sessions |
+| `ppt` | Edit or create  PPT|
 | `skill-creator` | Create new skills |

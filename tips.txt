@@ -18,3 +18,6 @@ nanobot gateway
 补充
 
 前端左侧有 New Chat / Clear / Reconnect，session id 会存在浏览器里；会话历史落盘在 ~/.nanobot/sessions/。
+
+cd /Users/os/Documents/yq_bot
+python3 -m nanobot.cli.commands gateway

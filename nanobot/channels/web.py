@@ -44,6 +44,23 @@ def _load_index_html() -> str:
     return _INDEX_HTML_CACHE
 
 
+def _list_skill_dirs() -> list[str]:
+    try:
+        skills_root = resources.files("nanobot").joinpath("skills")
+        names: list[str] = []
+        for entry in skills_root.iterdir():
+            name = entry.name
+            if name.startswith(".") or name.startswith("__"):
+                continue
+            if entry.is_dir():
+                names.append(name)
+        names.sort()
+        return names
+    except Exception as exc:
+        logger.debug(f"Failed to list skills: {exc}")
+        return []
+
+
 def _http_response(status: int, reason: str, content_type: str, body: bytes) -> Response:
     headers = Headers()
     headers["Content-Type"] = content_type
@@ -173,6 +190,11 @@ class WebChannel(BaseChannel):
 
         if path == "/healthz":
             return _http_response(200, "OK", "text/plain; charset=utf-8", b"ok")
+
+        if path == "/api/skills":
+            payload = {"skills": _list_skill_dirs()}
+            body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+            return _http_response(200, "OK", "application/json; charset=utf-8", body)
 
         if path == "/favicon.ico":
             return _http_response(204, "No Content", "image/x-icon", b"")
