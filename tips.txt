@@ -1,0 +1,20 @@
+Web 前端聊天能力接到现有 MessageBus / AgentLoop / SessionManager 上了：浏览器里聊天、自动带历史上下文（刷新/重连也会加载历史）。
+
+怎么用
+
+在 config.json 里开启 Web 渠道：
+{
+  "channels": {
+    "web": {
+      "enabled": true,
+      "host": "127.0.0.1",
+      "port": 18790
+    }
+  }
+}
+启动：
+nanobot gateway
+浏览器打开：http://127.0.0.1:18790
+补充
+
+前端左侧有 New Chat / Clear / Reconnect，session id 会存在浏览器里；会话历史落盘在 ~/.nanobot/sessions/。
