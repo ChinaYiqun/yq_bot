@@ -1,6 +1,6 @@
 <div align="center">
-  <img src="nanobot_logo.png" alt="nanobot" width="500">
-  <h1>nanobot: Ultra-Lightweight Personal AI Assistant</h1>
+  <img src="nanobot_logo.png" alt="yiqunbot" width="500">
+  <h1>yiqunbot: Ultra-Lightweight Personal AI Assistant</h1>
 </div>
 
 ## 📦 Install
@@ -18,7 +18,7 @@ pip install -e .
 ### 1. Initialize
 
 ```bash
-nanobot onboard
+yiqunbot onboard
 ```
 
 ### 2. Configure
@@ -118,7 +118,7 @@ Edit config file: `~/.nanobot/config.json`
 ### 3. 启动
 
 ```bash
-nanobot gateway
+yiqunbot gateway
 ```
 
 ### 4. 访问

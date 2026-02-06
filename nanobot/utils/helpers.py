@@ -1,4 +1,4 @@
-"""Utility functions for nanobot."""
+"""Utility functions for yiqunbot."""
 
 from pathlib import Path
 from datetime import datetime
@@ -11,7 +11,7 @@ def ensure_dir(path: Path) -> Path:
 
 
 def get_data_path() -> Path:
-    """Get the nanobot data directory (~/.nanobot)."""
+    """Get the yiqunbot data directory (~/.nanobot)."""
     return ensure_dir(Path.home() / ".nanobot")
 
 

@@ -13,7 +13,7 @@ Web 前端聊天能力接到现有 MessageBus / AgentLoop / SessionManager 上�
   }
 }
 启动：
-nanobot gateway
+yiqunbot gateway
 浏览器打开：http://127.0.0.1:18790
 补充
 

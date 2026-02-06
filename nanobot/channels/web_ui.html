@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>nanobot Web Chat</title>
+    <title>yiqunbot Web Chat</title>
     <style>
       :root{
         --bg0:#0b0f1a;
@@ -277,7 +277,7 @@
     <div class="wrap">
       <aside class="panel">
         <div class="brand">
-          <h1>nanobot Web Chat</h1>
+          <h1>yiqunbot Web Chat</h1>
           <div id="status" class="pill bad">disconnected</div>
         </div>
 
@@ -311,7 +311,7 @@
       <main class="chat">
         <div id="messages" class="messages" aria-live="polite"></div>
         <div class="composer">
-          <textarea id="input" placeholder="Message nanobot…"></textarea>
+          <textarea id="input" placeholder="Message yiqunbot..."></textarea>
           <button id="send" class="send">Send</button>
         </div>
       </main>
@@ -328,6 +328,11 @@
       const elToast = $("#toast");
       const elSkills = $("#skills");
 
+      const SESSION_KEY = "yiqunbot.web.session";
+      const CLIENT_KEY = "yiqunbot.web.client";
+      const LEGACY_SESSION_KEY = "nanobot.web.session";
+      const LEGACY_CLIENT_KEY = "nanobot.web.client";
+
       const store = {
         get(k){ try { return localStorage.getItem(k) } catch(_) { return null } },
         set(k,v){ try { localStorage.setItem(k,v) } catch(_) {} },
@@ -342,21 +347,21 @@
       function getSessionId(){
         const url = new URL(location.href);
         const fromUrl = url.searchParams.get("session");
-        if (fromUrl) { store.set("nanobot.web.session", fromUrl); return fromUrl; }
-        const fromStore = store.get("nanobot.web.session");
-        if (fromStore) return fromStore;
+        if (fromUrl) { store.set(SESSION_KEY, fromUrl); return fromUrl; }
+        const fromStore = store.get(SESSION_KEY) || store.get(LEGACY_SESSION_KEY);
+        if (fromStore) { store.set(SESSION_KEY, fromStore); return fromStore; }
         const sid = randId("s_");
-        store.set("nanobot.web.session", sid);
+        store.set(SESSION_KEY, sid);
         url.searchParams.set("session", sid);
         history.replaceState(null, "", url.toString());
         return sid;
       }
 
       function getClientId(){
-        const fromStore = store.get("nanobot.web.client");
-        if (fromStore) return fromStore;
+        const fromStore = store.get(CLIENT_KEY) || store.get(LEGACY_CLIENT_KEY);
+        if (fromStore) { store.set(CLIENT_KEY, fromStore); return fromStore; }
         const cid = randId("c_");
-        store.set("nanobot.web.client", cid);
+        store.set(CLIENT_KEY, cid);
         return cid;
       }
 
@@ -385,7 +390,7 @@
         const meta = document.createElement("div");
         meta.className = "meta";
         const t = ts ? new Date(ts) : new Date();
-        meta.textContent = (role === "user" ? "You" : "nanobot") + " · " + t.toLocaleTimeString();
+        meta.textContent = (role === "user" ? "You" : "yiqunbot") + " · " + t.toLocaleTimeString();
 
         wrap.appendChild(bubble);
         wrap.appendChild(meta);
@@ -534,7 +539,7 @@
 
       $("#new").addEventListener("click", () => {
         const sid = randId("s_");
-        store.set("nanobot.web.session", sid);
+        store.set(SESSION_KEY, sid);
         const url = new URL(location.href);
         url.searchParams.set("session", sid);
         location.href = url.toString();

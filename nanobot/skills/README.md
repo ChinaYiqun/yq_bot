@@ -1,6 +1,6 @@
-# nanobot Skills
+# yiqunbot Skills
 
-This directory contains built-in skills that extend nanobot's capabilities.
+This directory contains built-in skills that extend yiqunbot's capabilities.
 
 ## Skill Format
 

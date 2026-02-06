@@ -1,5 +1,5 @@
 """
-nanobot - A lightweight AI agent framework
+yiqunbot - A lightweight AI agent framework
 """
 
 __version__ = "0.1.0"

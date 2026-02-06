@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
- * nanobot WhatsApp Bridge
+ * yiqunbot WhatsApp Bridge
  * 
- * This bridge connects WhatsApp Web to nanobot's Python backend
+ * This bridge connects WhatsApp Web to yiqunbot's Python backend
  * via WebSocket. It handles authentication, message forwarding,
  * and reconnection logic.
  * 
@@ -26,7 +26,7 @@ import { join } from 'path';
 const PORT = parseInt(process.env.BRIDGE_PORT || '3001', 10);
 const AUTH_DIR = process.env.AUTH_DIR || join(homedir(), '.nanobot', 'whatsapp-auth');
 
-console.log('🐈 nanobot WhatsApp Bridge');
+console.log('🐈 yiqunbot WhatsApp Bridge');
 console.log('========================\n');
 
 const server = new BridgeServer(PORT, AUTH_DIR);

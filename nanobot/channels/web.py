@@ -38,8 +38,8 @@ def _load_index_html() -> str:
         logger.error(f"Failed to load web UI HTML: {exc}")
         _INDEX_HTML_CACHE = (
             "<!doctype html><html><head><meta charset='utf-8' />"
-            "<title>nanobot Web Chat</title></head>"
-            "<body><h1>nanobot Web Chat</h1><p>Missing web_ui.html</p></body></html>"
+            "<title>yiqunbot Web Chat</title></head>"
+            "<body><h1>yiqunbot Web Chat</h1><p>Missing web_ui.html</p></body></html>"
         )
     return _INDEX_HTML_CACHE
 

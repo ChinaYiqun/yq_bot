@@ -21,7 +21,7 @@ const pptxgen = require("pptxgenjs");
 
 const pres = new pptxgen();
 pres.layout = "LAYOUT_16x9";
-pres.author = "nanobot";
+pres.author = "yiqunbot";
 pres.title = "Presentation Title";
 
 const colors = {

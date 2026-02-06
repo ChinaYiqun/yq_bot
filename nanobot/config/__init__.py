@@ -1,4 +1,4 @@
-"""Configuration module for nanobot."""
+"""Configuration module for yiqunbot."""
 
 from nanobot.config.loader import load_config, get_config_path
 from nanobot.config.schema import Config

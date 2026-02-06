@@ -1,4 +1,4 @@
-"""CLI commands for nanobot."""
+"""CLI commands for yiqunbot."""
 
 import asyncio
 from pathlib import Path
@@ -10,8 +10,8 @@ from rich.table import Table
 from nanobot import __version__, __logo__
 
 app = typer.Typer(
-    name="nanobot",
-    help=f"{__logo__} nanobot - Personal AI Assistant",
+    name="yiqunbot",
+    help=f"{__logo__} yiqunbot - Personal AI Assistant",
     no_args_is_help=True,
 )
 
@@ -20,7 +20,7 @@ console = Console()
 
 def version_callback(value: bool):
     if value:
-        console.print(f"{__logo__} nanobot v{__version__}")
+        console.print(f"{__logo__} yiqunbot v{__version__}")
         raise typer.Exit()
 
 
@@ -30,7 +30,7 @@ def main(
         None, "--version", "-v", callback=version_callback, is_eager=True
     ),
 ):
-    """nanobot - Personal AI Assistant."""
+    """yiqunbot - Personal AI Assistant."""
     pass
 
 
@@ -41,7 +41,7 @@ def main(
 
 @app.command()
 def onboard():
-    """Initialize nanobot configuration and workspace."""
+    """Initialize yiqunbot configuration and workspace."""
     from nanobot.config.loader import get_config_path, save_config
     from nanobot.config.schema import Config
     from nanobot.utils.helpers import get_workspace_path
@@ -65,11 +65,11 @@ def onboard():
     # Create default bootstrap files
     _create_workspace_templates(workspace)
     
-    console.print(f"\n{__logo__} nanobot is ready!")
+    console.print(f"\n{__logo__} yiqunbot is ready!")
     console.print("\nNext steps:")
     console.print("  1. Add your API key to [cyan]~/.nanobot/config.json[/cyan]")
     console.print("     Get one at: https://openrouter.ai/keys")
-    console.print("  2. Chat: [cyan]nanobot agent -m \"Hello!\"[/cyan]")
+    console.print("  2. Chat: [cyan]yiqunbot agent -m \"Hello!\"[/cyan]")
     console.print("\n[dim]Want Telegram/WhatsApp? See: https://github.com/HKUDS/nanobot#-chat-apps[/dim]")
 
 
@@ -91,7 +91,7 @@ You are a helpful AI assistant. Be concise, accurate, and friendly.
 """,
         "SOUL.md": """# Soul
 
-I am nanobot, a lightweight AI assistant.
+I am yiqunbot, a lightweight AI assistant.
 
 ## Personality
 
@@ -159,7 +159,7 @@ def gateway(
     ),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Verbose output"),
 ):
-    """Start the nanobot gateway."""
+    """Start the yiqunbot gateway."""
     from nanobot.config.loader import load_config, get_data_dir
     from nanobot.bus.queue import MessageBus
     from nanobot.providers.litellm_provider import LiteLLMProvider
@@ -181,7 +181,7 @@ def gateway(
         if getattr(config.channels, "web", None) and config.channels.web.enabled:
             config.channels.web.port = port
 
-    console.print(f"{__logo__} Starting nanobot gateway on port {config.gateway.port}...")
+    console.print(f"{__logo__} Starting yiqunbot gateway on port {config.gateway.port}...")
     
     # Create components
     bus = MessageBus()
@@ -486,7 +486,7 @@ def _get_bridge_dir() -> Path:
     
     if not source:
         console.print("[red]Bridge source not found.[/red]")
-        console.print("Try reinstalling: pip install --force-reinstall nanobot")
+        console.print("Try reinstalling: pip install --force-reinstall nanobot-ai")
         raise typer.Exit(1)
     
     console.print(f"{__logo__} Setting up bridge...")
@@ -697,14 +697,14 @@ def cron_run(
 
 @app.command()
 def status():
-    """Show nanobot status."""
+    """Show yiqunbot status."""
     from nanobot.config.loader import load_config, get_config_path
 
     config_path = get_config_path()
     config = load_config()
     workspace = config.workspace_path
 
-    console.print(f"{__logo__} nanobot Status\n")
+    console.print(f"{__logo__} yiqunbot Status\n")
 
     console.print(f"Config: {config_path} {'[green]✓[/green]' if config_path.exists() else '[red]✗[/red]'}")
     console.print(f"Workspace: {workspace} {'[green]✓[/green]' if workspace.exists() else '[red]✗[/red]'}")
