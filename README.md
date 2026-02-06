@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="nanobot_logo.png" alt="yiqunbot" width="500">
+  <img src="yiqunbot_logo.png" alt="yiqunbot" width="500">
   <h1>yiqunbot: Ultra-Lightweight Personal AI Assistant</h1>
 </div>
 
@@ -115,39 +115,39 @@ Edit config file: `~/.nanobot/config.json`
 }
 ```
 
-### 3. 启动
+### 3. Start
 
 ```bash
 yiqunbot gateway
 ```
 
-### 4. 访问
+### 4. Access
 
-浏览器打开：http://127.0.0.1:18790
+Open in browser: http://127.0.0.1:18790
 
-## ⚙️ 配置说明
+## ⚙️ Configuration Instructions
 
-### 核心配置项
+### Core Configuration Items
 
 1. **agents.defaults**
-   - `model`: 默认使用的模型，这里设置为 `azure/gpt-5.1-chat`
-   - `model_bk`: 备用模型，设置为 `z-ai/glm-4.7`
-   - `temperature`: 生成文本的随机性，设置为 0.7
+   - `model`: Default model to use, set to `azure/gpt-5.1-chat`
+   - `model_bk`: Backup model, set to `z-ai/glm-4.7`
+   - `temperature`: Randomness of generated text, set to 0.7
 
 2. **channels.web**
-   - `enabled`: 启用 web 界面，设置为 `true`
-   - `host`: 监听地址，设置为 `127.0.0.1`
-   - `port`: 监听端口，设置为 `18790`
+   - `enabled`: Enable web interface, set to `true`
+   - `host`: Listen address, set to `127.0.0.1`
+   - `port`: Listen port, set to `18790`
 
 3. **providers.azureOpenai**
-   - `enabled`: 启用 Azure OpenAI，设置为 `true`
-   - `endpoint`: Azure OpenAI 端点
-   - `apiVersion`: API 版本
-   - `deploymentName`: 部署名称
+   - `enabled`: Enable Azure OpenAI, set to `true`
+   - `endpoint`: Azure OpenAI endpoint
+   - `apiVersion`: API version
+   - `deploymentName`: Deployment name
 
-### 注意事项
+### Notes
 
-- 所有 API key 字段已清空，请根据实际情况填写
-- Azure OpenAI 配置已预设，只需填写 `apiKey`
-- Web 界面默认在 `127.0.0.1:18790` 启动
-- 如需启用 WhatsApp 或 Telegram，请修改对应配置
+- All API key fields have been cleared, please fill in according to your actual situation
+- Azure OpenAI configuration is preset, you only need to fill in `apiKey`
+- Web interface starts at `127.0.0.1:18790` by default
+- To enable WhatsApp or Telegram, please modify the corresponding configuration
