@@ -71,18 +71,6 @@ cd nanobot
 pip install -e .
 ```
 
-**Install with [uv](https://github.com/astral-sh/uv)** (stable, fast)
-
-```bash
-uv tool install nanobot-ai
-```
-
-**Install from PyPI** (stable)
-
-```bash
-pip install nanobot-ai
-```
-
 ## 🚀 Quick Start
 
 > [!TIP]
