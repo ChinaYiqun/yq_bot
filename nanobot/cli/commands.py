@@ -186,21 +186,48 @@ def gateway(
     # Create components
     bus = MessageBus()
     
-    # Create provider (supports OpenRouter, Anthropic, OpenAI, Bedrock)
-    api_key = config.get_api_key()
-    api_base = config.get_api_base()
+    # Create provider (supports OpenRouter, Anthropic, OpenAI, Azure OpenAI, Bedrock)
     model = config.agents.defaults.model
+    azure = config.get_azure_openai()
+    api_version = None
+
+    if azure and azure.enabled:
+        missing = []
+        if not azure.api_key:
+            missing.append("providers.azureOpenai.apiKey or AZURE_OPENAI_KEY")
+        if not azure.endpoint:
+            missing.append("providers.azureOpenai.endpoint or AZURE_OPENAI_ENDPOINT")
+        if not azure.deployment_name and not model.startswith("azure/"):
+            missing.append(
+                "providers.azureOpenai.deploymentName or AZURE_OPENAI_DEPLOYMENT_NAME"
+            )
+        if missing:
+            console.print("[red]Error: Azure OpenAI config missing fields.[/red]")
+            for item in missing:
+                console.print(f"  - {item}")
+            raise typer.Exit(1)
+
+        api_key = azure.api_key
+        api_base = azure.endpoint
+        api_version = azure.api_version or None
+        if not model.startswith("azure/") and azure.deployment_name:
+            model = f"azure/{azure.deployment_name}"
+    else:
+        api_key = config.get_api_key()
+        api_base = config.get_api_base()
+
     is_bedrock = model.startswith("bedrock/")
 
     if not api_key and not is_bedrock:
         console.print("[red]Error: No API key configured.[/red]")
-        console.print("Set one in ~/.nanobot/config.json under providers.openrouter.apiKey")
+        console.print("Set one in ~/.nanobot/config.json under providers.openrouter.apiKey or providers.azureOpenai.apiKey")
         raise typer.Exit(1)
     
     provider = LiteLLMProvider(
         api_key=api_key,
         api_base=api_base,
-        default_model=config.agents.defaults.model
+        api_version=api_version,
+        default_model=model,
     )
     
     # Create agent
@@ -208,7 +235,7 @@ def gateway(
         bus=bus,
         provider=provider,
         workspace=config.workspace_path,
-        model=config.agents.defaults.model,
+        model=model,
         max_iterations=config.agents.defaults.max_tool_iterations,
         brave_api_key=config.tools.web.search.api_key or None,
         exec_config=config.tools.exec,
@@ -302,9 +329,35 @@ def agent(
     
     config = load_config()
     
-    api_key = config.get_api_key()
-    api_base = config.get_api_base()
     model = config.agents.defaults.model
+    azure = config.get_azure_openai()
+    api_version = None
+
+    if azure and azure.enabled:
+        missing = []
+        if not azure.api_key:
+            missing.append("providers.azureOpenai.apiKey or AZURE_OPENAI_KEY")
+        if not azure.endpoint:
+            missing.append("providers.azureOpenai.endpoint or AZURE_OPENAI_ENDPOINT")
+        if not azure.deployment_name and not model.startswith("azure/"):
+            missing.append(
+                "providers.azureOpenai.deploymentName or AZURE_OPENAI_DEPLOYMENT_NAME"
+            )
+        if missing:
+            console.print("[red]Error: Azure OpenAI config missing fields.[/red]")
+            for item in missing:
+                console.print(f"  - {item}")
+            raise typer.Exit(1)
+
+        api_key = azure.api_key
+        api_base = azure.endpoint
+        api_version = azure.api_version or None
+        if not model.startswith("azure/") and azure.deployment_name:
+            model = f"azure/{azure.deployment_name}"
+    else:
+        api_key = config.get_api_key()
+        api_base = config.get_api_base()
+
     is_bedrock = model.startswith("bedrock/")
 
     if not api_key and not is_bedrock:
@@ -315,7 +368,8 @@ def agent(
     provider = LiteLLMProvider(
         api_key=api_key,
         api_base=api_base,
-        default_model=config.agents.defaults.model
+        api_version=api_version,
+        default_model=model,
     )
     
     agent_loop = AgentLoop(

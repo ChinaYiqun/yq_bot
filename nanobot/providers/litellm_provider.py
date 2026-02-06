@@ -3,6 +3,8 @@
 import os
 from typing import Any
 
+import httpx
+
 import litellm
 from litellm import acompletion
 
@@ -21,25 +23,37 @@ class LiteLLMProvider(LLMProvider):
         self, 
         api_key: str | None = None, 
         api_base: str | None = None,
+        api_version: str | None = None,
         default_model: str = "anthropic/claude-opus-4-5"
     ):
         super().__init__(api_key, api_base)
         self.default_model = default_model
+        self.api_version = api_version
         
         # Detect OpenRouter by api_key prefix or explicit api_base
         self.is_openrouter = (
             (api_key and api_key.startswith("sk-or-")) or
             (api_base and "openrouter" in api_base)
         )
+
+        # Detect Azure OpenAI
+        self.is_azure = (
+            default_model.startswith("azure/") or
+            (api_base and "openai.azure.com" in api_base)
+        )
         
         # Track if using custom endpoint (vLLM, etc.)
-        self.is_vllm = bool(api_base) and not self.is_openrouter
+        self.is_vllm = bool(api_base) and not self.is_openrouter and not self.is_azure
         
         # Configure LiteLLM based on provider
         if api_key:
             if self.is_openrouter:
                 # OpenRouter mode - set key
                 os.environ["OPENROUTER_API_KEY"] = api_key
+            elif self.is_azure:
+                # Azure OpenAI
+                os.environ.setdefault("AZURE_OPENAI_API_KEY", api_key)
+                os.environ.setdefault("AZURE_API_KEY", api_key)
             elif self.is_vllm:
                 # vLLM/custom endpoint - uses OpenAI-compatible API
                 os.environ["OPENAI_API_KEY"] = api_key
@@ -56,6 +70,12 @@ class LiteLLMProvider(LLMProvider):
         
         if api_base:
             litellm.api_base = api_base
+            if self.is_azure:
+                os.environ.setdefault("AZURE_API_BASE", api_base)
+        if api_version:
+            litellm.api_version = api_version
+            if self.is_azure:
+                os.environ.setdefault("AZURE_API_VERSION", api_version)
         
         # Disable LiteLLM logging noise
         litellm.suppress_debug_info = True
@@ -82,6 +102,16 @@ class LiteLLMProvider(LLMProvider):
             LLMResponse with content and/or tool calls.
         """
         model = model or self.default_model
+
+        # Direct Azure OpenAI request (matches Azure REST API usage)
+        if self.is_azure:
+            return await self._chat_azure_direct(
+                messages=messages,
+                tools=tools,
+                model=model,
+                max_tokens=max_tokens,
+                temperature=temperature,
+            )
         
         # For OpenRouter, prefix model name if not already prefixed
         if self.is_openrouter and not model.startswith("openrouter/"):
@@ -100,6 +130,10 @@ class LiteLLMProvider(LLMProvider):
         # Convert openai/ prefix to hosted_vllm/ if user specified it
         if self.is_vllm:
             model = f"hosted_vllm/{model}"
+
+        # For Azure OpenAI, model should be prefixed with azure/
+        if self.is_azure and not model.startswith("azure/"):
+            model = f"azure/{model}"
         
         # For Gemini, ensure gemini/ prefix if not already present
         if "gemini" in model.lower() and not model.startswith("gemini/"):
@@ -115,6 +149,8 @@ class LiteLLMProvider(LLMProvider):
         # Pass api_base directly for custom endpoints (vLLM, etc.)
         if self.api_base:
             kwargs["api_base"] = self.api_base
+        if self.api_version:
+            kwargs["api_version"] = self.api_version
         
         if tools:
             kwargs["tools"] = tools
@@ -125,6 +161,129 @@ class LiteLLMProvider(LLMProvider):
             return self._parse_response(response)
         except Exception as e:
             # Return error as content for graceful handling
+            return LLMResponse(
+                content=f"Error calling LLM: {str(e)}",
+                finish_reason="error",
+            )
+
+    async def _chat_azure_direct(
+        self,
+        messages: list[dict[str, Any]],
+        tools: list[dict[str, Any]] | None,
+        model: str,
+        max_tokens: int,
+        temperature: float,
+    ) -> LLMResponse:
+        if not self.api_base or not self.api_key:
+            return LLMResponse(
+                content="Error calling LLM: missing Azure API base or key",
+                finish_reason="error",
+            )
+        if not self.api_version:
+            return LLMResponse(
+                content="Error calling LLM: missing Azure API version",
+                finish_reason="error",
+            )
+
+        deployment = model.removeprefix("azure/") if model.startswith("azure/") else model
+        endpoint = self.api_base.rstrip("/")
+        url = (
+            f"{endpoint}/openai/deployments/{deployment}/chat/completions"
+            f"?api-version={self.api_version}"
+        )
+
+        def build_body(use_max_completion: bool, include_temperature: bool = True) -> dict[str, Any]:
+            payload: dict[str, Any] = {
+                "messages": messages,
+            }
+            if include_temperature:
+                payload["temperature"] = temperature
+            if use_max_completion:
+                payload["max_completion_tokens"] = max_tokens
+            else:
+                payload["max_tokens"] = max_tokens
+            if tools:
+                payload["tools"] = tools
+                payload["tool_choice"] = "auto"
+            return payload
+
+        headers = {
+            "Content-Type": "application/json",
+            "api-key": self.api_key,
+        }
+
+        try:
+            async with httpx.AsyncClient(timeout=60.0) as client:
+                # Prefer max_completion_tokens for newer Azure models (e.g., gpt-5.1)
+                use_max_completion = True
+                include_temperature = True
+                body = build_body(use_max_completion, include_temperature)
+                resp = await client.post(url, json=body, headers=headers)
+
+                if resp.status_code == 400:
+                    try:
+                        err = resp.json().get("error", {})
+                        param = err.get("param")
+                        msg = err.get("message", "")
+                    except Exception:
+                        param = None
+                        msg = ""
+
+                    needs_retry = (
+                        param in ("max_tokens", "max_completion_tokens")
+                        or "max_tokens" in msg
+                        or "max_completion_tokens" in msg
+                    )
+                    temp_unsupported = (
+                        param == "temperature"
+                        or "temperature" in msg
+                    )
+                    if needs_retry:
+                        use_max_completion = not use_max_completion
+                        body = build_body(use_max_completion, include_temperature)
+                        resp = await client.post(url, json=body, headers=headers)
+                    if resp.status_code == 400 and temp_unsupported:
+                        include_temperature = False
+                        body = build_body(use_max_completion, include_temperature)
+                        resp = await client.post(url, json=body, headers=headers)
+
+            if resp.status_code != 200:
+                return LLMResponse(
+                    content=(
+                        f"Error calling LLM: Azure HTTP {resp.status_code} - {resp.text}"
+                    ),
+                    finish_reason="error",
+                )
+
+            data = resp.json()
+            choice = (data.get("choices") or [{}])[0]
+            message = choice.get("message") or {}
+            content = message.get("content") or ""
+
+            tool_calls = []
+            for tc in message.get("tool_calls") or []:
+                args = tc.get("function", {}).get("arguments")
+                if isinstance(args, str):
+                    try:
+                        import json as _json
+
+                        args = _json.loads(args)
+                    except Exception:
+                        args = {"raw": args}
+                tool_calls.append(
+                    ToolCallRequest(
+                        id=tc.get("id", ""),
+                        name=tc.get("function", {}).get("name", ""),
+                        arguments=args or {},
+                    )
+                )
+
+            return LLMResponse(
+                content=content,
+                tool_calls=tool_calls,
+                finish_reason=choice.get("finish_reason") or "stop",
+            )
+        except Exception as e:
             return LLMResponse(
                 content=f"Error calling LLM: {str(e)}",
                 finish_reason="error",
